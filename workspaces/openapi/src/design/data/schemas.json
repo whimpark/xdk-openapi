@@ -1,0 +1,65 @@
+{
+    "schemas": { 
+        "integer": {
+            "config": {
+                "recoverProperties": ["title"]
+            },
+            "data": null,
+            "schema": {
+                "type": "integer"
+            }
+        },
+        "number": {
+            "config": {
+                "recoverProperties": ["title"]
+            },
+            "data": null,
+            "schema": {
+                "type": "number"
+            }
+        },
+        "string": {
+            "config": {
+                "recoverProperties": ["title"]
+            },
+            "data": null,
+            "schema": {
+                "type": "string"
+            }
+        },
+        "boolean": {
+            "config": {
+                "recoverProperties": ["title"]
+            },
+            "data": null,
+            "schema": {
+                "type": "string"
+            }
+        },
+        "object": {
+            "config": {
+                "recoverProperties": ["title", "required", "properties", "ui:order"]
+            },
+            "data": {},
+            "schema": {
+                "type": "object",
+                "required": [],
+                "properties": {
+                },
+                "ui:order": []
+            }
+        },
+        "array": {
+            "config": {
+                "recoverProperties": ["title", "items" ]
+            },
+            "data": [],
+            "schema": {
+                "type": "array",
+                "items": {
+                    "type":"string"
+                }
+            }
+        }
+    }
+}
