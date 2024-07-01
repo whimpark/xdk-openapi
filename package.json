@@ -8,33 +8,9 @@
         "workspaces/*"
     ],
     "scripts": {
-        "docs:dev": "yarn workspace docs dev",
-        "docs:build": "yarn workspace docs build",
-        "lib:build": "yarn lib-element:build && yarn lib-iview3:build && yarn lib3-element:build && yarn lib3-ant:build && yarn lib3-naive:build",
-        "lib-element:watch": "yarn workspace @lljj/vue-json-schema-form watch",
-        "lib-element:build": "yarn workspace @lljj/vue-json-schema-form build",
-        "lib-iview3:watch": "yarn workspace @lljj/vue2-form-iview3 watch",
-        "lib-iview3:build": "yarn workspace @lljj/vue2-form-iview3 build",
-        "lib3-element:watch": "yarn workspace @lljj/vue3-form-element watch",
-        "lib3-element:build": "yarn workspace @lljj/vue3-form-element build",
-        "lib3-ant:watch": "yarn workspace @lljj/vue3-form-ant watch",
-        "lib3-ant:build": "yarn workspace @lljj/vue3-form-ant build",
-        "lib3-naive:build": "yarn workspace @lljj/vue3-form-naive build", 
-        "openapi2:dev": "set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi-v2 dev",
         "openapi:dev": "set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi dev",
         "openapi:build": "set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi build",
-        "demo:dev": " set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace demo dev",
-        "demo:build": "yarn workspace demo build", 
-        "demo3:build": "yarn workspace demo-v3 build",
-        "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 2",
-        "clean": "lerna clean && rm -rf node_modules",
-        "packages:diff": "lerna diff",
-        "packages:list": "lerna ls -l",
-        "packages:changed": "lerna changed",
-        "packages:build": "lerna run --stream --sort build",
-        "publish1": "yarn run lib:build && lerna publish",
-        "autoPublish": "lerna publish --conventional-commits --yes",
-        "autoVersion": "lerna version --conventional-commits --yes"
+        "clean": "lerna clean && rm -rf node_modules"
     },
     "config": {
         "commitizen": {
