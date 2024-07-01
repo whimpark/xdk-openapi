@@ -10,6 +10,7 @@
     "scripts": {
         "openapi:dev": "set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi dev",
         "openapi:build": "set NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi build",
+        "openapi:build:github": "export NODE_OPTIONS=--openssl-legacy-provider && yarn workspace openapi build",
         "clean": "lerna clean && rm -rf node_modules"
     },
     "config": {

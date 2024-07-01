@@ -41,7 +41,7 @@ jobs:
         npm install -g yarn
         yarn config set ignore-engines true
         yarn install
-        npm run openapi:build
+        npm run openapi:build:github
     - name: Setup Pages
       uses: actions/configure-pages@v2
     - name: Upload artifact
