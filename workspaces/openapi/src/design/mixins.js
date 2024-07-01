@@ -14,7 +14,6 @@ const mixin = {
         }
     },
     created() {
-        this.$initQuery();
     },
     methods: {
         $keys(o) {

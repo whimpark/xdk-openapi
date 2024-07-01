@@ -88,7 +88,7 @@ export default {
     computed: {
 
         tableData() {
-            let paths = this.formData.root.paths;
+            let paths = this.formData?.root?.paths;
             if (!paths) {
                 return []
             }
@@ -126,6 +126,7 @@ export default {
         }
     },
     created() {
+        this.$initQuery();
         this.initData();
     },
     methods: {

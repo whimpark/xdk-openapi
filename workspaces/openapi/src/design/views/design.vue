@@ -11,8 +11,9 @@
                     <el-select v-model="storage.name" size="small" @change="loadDesign()">
                         <el-option :value="item" v-for="item in storage.list" :key="item" :label="item" />
                     </el-select>
-                    <el-button size="small" type="primary" @click="renameConfirm()">重命名</el-button>
-                    <el-button size="small" type="primary" @click="copyDesign()">复制</el-button>
+                    <el-button size="small" type="primary" @click="addDesign()">新增</el-button>
+                    <el-button size="small" type=" " @click="renameConfirm()">重命名</el-button>
+                    <el-button size="small" type=" " @click="copyDesign()">复制</el-button>
                 </div>
                 <div :class="$style.headerButtons">
                     <el-button size="small" type="danger" @click="deleteConfirm();">删除</el-button>
@@ -119,7 +120,7 @@ export default {
         },
         curSchemaCode: {
             get() {
-                return this.genCodeStrComputedGetter(this.schema.properties.root);
+                return this.genCodeStrComputedGetter(this.schema?.properties?.root);
             },
             set(val) {
                 try {
@@ -147,7 +148,7 @@ export default {
         },
         curFormDataCode: {
             get() {
-                return this.genCodeStrComputedGetter(this.formData.root);
+                return this.genCodeStrComputedGetter(this.formData?.root);
             },
             set(val) {
                 try {
@@ -175,6 +176,7 @@ export default {
         }
     },
     created() {
+        this.$initQuery();
         this.initData();
     },
     methods: {
@@ -235,14 +237,15 @@ export default {
                 if (!window.localStorage[name]) {
                     console.log("No content!");
                     return null
-                } else[
+                } else {
                     local[name] = JSON.parse(window.localStorage[name])
-                ]
+                }
+
             }
             return local[name]
         },
 
- 
+
 
         loadDesign(name, force, keepNodeIndex) {
             let originName = name
@@ -319,6 +322,24 @@ export default {
                 this.$message({ type: 'info', message: '操作取消' });
             });
 
+        },
+
+        addDesign() {
+            let timestamp = new Date().getTime()
+            let newName = this.getName(timestamp);
+            this.saveContent(newName, {
+                schema: {
+                    type: "object",
+                    properties: {
+                        root: DESIGN.schemas.object.schema
+                    }
+                },
+                data: {
+                    root: DESIGN.schemas.object.data
+                }
+            })
+            this.storage.name = timestamp
+            this.listDesign(this.storage.name);
         },
 
         copyDesign(name) {
@@ -615,8 +636,8 @@ export default {
             let nodeIndex = this.formNodes.length - 1;
             let content = this.loadContent(this.storage.name, true);
             let origin = {
-                schema: this.getFormSchemaNode(nodeIndex, content["schema"]),
-                data: this.getFormDataNode(nodeIndex, content["data"])
+                schema: this.getFormSchemaNode(nodeIndex, content?.schema),
+                data: this.getFormDataNode(nodeIndex, content?.data)
             }
             // 标准化schema、恢复原schema属性
             this.recoverSchema(design.schema, schema)

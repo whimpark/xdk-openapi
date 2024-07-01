@@ -3,12 +3,12 @@
         <el-form label-width="auto" style="max-width: 600px">
             <schema-node-type :entity="formSchema" label="节点类型" @change="handleChangeType(formSchema)" />
             
-            <div v-if="formSchema.type == 'object'">
+            <div v-if="formSchema?.type == 'object'">
                 <schema-node-object :formSchema="formSchema" :parent="parent"  :field="field" @edit="editProperty"
                     @delete="deleteProperty" />
                 <schema-add-property @add="addProperty" />
             </div>
-            <div v-else-if="formSchema.type == 'array'">
+            <div v-else-if="formSchema?.type == 'array'">
                 <schema-node-type :entity="formSchema.items" label="元素类型" @change="handleChangeType(formSchema, formSchema.items)" />
                 <el-button type="primary" size="small" @click="addElement">添加元素</el-button>
                 <div v-if="isObjectType(formSchema.items.type)">
@@ -21,7 +21,7 @@
                     </div>
                     <schema-add-property @add="addProperty" />
                 </div>
-                <div v-else-if="isArrayType(formSchema.items.type)">
+                <div v-else-if="isArrayType(formSchema?.items.type)">
                     <div :class="$style.box" v-for="(item, di) in parent[field]" :key="di">
                         <el-link>数组元素 [{{ di }}] </el-link>
                         <el-button @click="editProperty(di, di)" size="small">编辑</el-button>
