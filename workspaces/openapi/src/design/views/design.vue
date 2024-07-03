@@ -97,7 +97,6 @@ export default {
             },
 
             rename: "",
-            formNodes: ["nodes", 'root'],
             currentFormSchema: {},
             currentFormData: {},
             currentFormDataParent: {},
@@ -421,31 +420,7 @@ export default {
             this.currentFormDataParent = this.getFormDataNode(index - 1);
             this.currentFormSchema = this.getFormSchemaNode(index);
         },
-        getFormDataNode(index, formData) {
-            if (index < 0) return null;
-            let node = formData ? formData : this.formData;
-            for (let i = 1; i <= index; i++) {
-                if (!node) {
-                    return null;
-                } else {
-                    node = node[this.formNodes[i]]
-                }
-            }
-            return node
-        },
-        getFormSchemaNode(index, schema) {
-            let node = schema ? schema : this.schema;
-            for (let i = 1; i <= index; i++) {
-                if (!node) {
-                    return null;
-                } else if (node.type == 'object') {
-                    node = node.properties[this.formNodes[i]]
-                } else if (node.type == 'array') {
-                    node = node.items
-                }
-            }
-            return node
-        },
+
 
         handleUiChange(value) {
             const formatStr = jsonCode => JSON.stringify(JSON.parse(jsonCode));
