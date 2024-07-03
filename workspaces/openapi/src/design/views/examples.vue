@@ -39,7 +39,7 @@
                     </el-table-column>
                     <el-table-column label="ID" prop="id" width="100">
                     </el-table-column>
-                    <el-table-column label="Method" prop="method" width="100">
+                    <el-table-column label="Method" prop="method" width="200">
 
                         <template slot-scope="props">
                             <el-tag v-if="isMethod(props.row, 'get')" type="success">GET</el-tag>
@@ -58,6 +58,8 @@
                     <el-table-column label="Operation" width="120">
                         <template slot-scope="props">
                             <el-button size="small" type="primary" @click="toDesignNode(props.row)">编辑</el-button>
+                            <el-button size="small" type="primary"
+                                @click="addExampleByRow('EXMP0002', props.row)">新建</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -72,7 +74,6 @@ import CodeEditor from '../common/components/CodeEditorV2';
 import SchemaNode from '../components/schema/SchemaNode.vue';
 import SchemaNodeType from '../components/schema/SchemaNodeType.vue';
 import HeaderLine from '../components/HeaderLine.vue';
-import DESIGN from "../data/schemas.json"
 
 const NODE_BASE = 1
 
@@ -87,11 +88,10 @@ export default {
     },
     data() {
         return {
-            formSchema: null,
+            schema: null,
             formData: null,
 
-            rename: "",
-            formNodes: ["nodes", 'root'],
+            rename: "", 
             currentFormSchema: {},
             currentFormData: {},
             currentFormDataParent: {},
@@ -184,6 +184,149 @@ export default {
             console.log("examples", examples);
             return examples;
         },
+
+        addExampleByRow(exampleName, row, paramExample, requestExample, responseExample) {
+            this.addExample(exampleName, row.path, row.method, paramExample, requestExample, responseExample)
+        },
+
+        addExample(exampleName, path, method, parameters, requestBody, responses) {
+            parameters = { status2: 'DONE' }
+            requestBody = {
+                content: {
+                    "application/json": {
+                        status: "DONE",
+                        id: "ID00001",
+                        name: ""
+                    }
+                }
+            }
+            responses = {
+                "200": {
+                    content: {
+                        "application/json": {
+                            status: "DONE",
+                            id: "ID00001",
+                            name: ""
+                        }
+                    }
+                }
+            }
+
+            let _this = this
+            if (!path || !method) return
+
+
+
+            let paths = this.formData?.root?.paths;
+
+            if (!paths || !paths[path] || !paths[path][method]) return
+
+
+            console.log("paths", paths);
+
+            let row = paths[path][method]
+            //parameters
+            _this.$keys(parameters).forEach(epn => {
+                row.parameters?.forEach(p => {
+                    if (p.name == epn) {
+                        Vue.set(p.examples, exampleName, parameters[p.name])
+                    }
+                })
+            })
+            // request
+            _this.$keys(requestBody.content).forEach(emn => {
+                if (!row.requestBody) { Vue.set(row, requestBody, {}); }
+                if (!row.requestBody.content) { Vue.set(row.requestBody, content, {}); }
+                if (!row.requestBody.content[emn]) { Vue.set(row.requestBody.content, emn, {}); }
+                if (!row.requestBody.content[emn].examples) { Vue.set(row.requestBody.content[emn], examples, {}); }
+                Vue.set(row.requestBody.content[emn].examples, exampleName, requestBody.content[emn]);
+            })
+            // response
+            _this.$keys(responses).forEach(estatus => {
+                if (!row.responses) { Vue.set(row, responses, {}); }
+                if (!row.responses[estatus]) { Vue.set(row.responses, estatus, {}); }
+                _this.$keys(responses[estatus]?.content)?.forEach(emn => {
+                    if (!row.responses[estatus].content) { Vue.set(row.responses[estatus], content, {}); }
+                    if (!row.responses[estatus].content[emn]) { Vue.set(row.responses[estatus].content, emn, {}); }
+                    if (!row.responses[estatus].content[emn].examples) { Vue.set(row.responses[estatus].content[emn], examples, {}); }
+                    Vue.set(row.responses[estatus].content[emn].examples, exampleName, responses[estatus].content[emn])
+                })
+            })
+
+            this.$nextTick(e => {
+                let design = this.analyseDesignFromData(row) 
+                this.formNodes = ["nodes", "root", "paths", path, method]
+                let currentSchema=this.getFormSchemaNode(3, this.schema)
+                currentSchema.properties[method]=design.schema.properties.root
+                this.saveDesign(this.storage.name);
+            })
+        },
+
+        saveDesign(name) {
+            let originName = name
+            name = this.getName(name)
+            this.storage.openapis[name] = {
+                "schema": this.schema,
+                "data": this.formData
+            }
+            this.saveContent(name, this.storage.openapis[name])
+            this.loadDesign(originName, true, true)
+        },
+
+        saveContent(name, design) {
+            var local = window.localStorage;
+            local[name] = JSON.stringify(design)
+        },
+
+        analyseSchemaFromData(schema, data, property) {
+            let schemaType = this.$getType(data)
+            let schemaDesign = this.$getDesignByType(schemaType)
+            let propertyValue = data[property]
+            let propertyType = this.$getType(propertyValue)
+            let propertyDesign = this.$getDesignByType(propertyType)
+ 
+            // schemaType
+            schema.type = schemaType
+            if (schemaType == "object") {
+                if (!schema.properties) { schema.properties = {} }
+                schema.properties[property] = propertyDesign.schema
+                this.$handlePropertiesOrder(schema, property)
+            } else if (schemaType == "array") {
+                schema.items = propertyDesign.schema
+            }
+
+            if (!propertyValue) { return schema; }
+
+            // propertyType
+            let currentSchema = (schemaType == "object") ? schema.properties[property] : schema.items
+            if (propertyType == "object") {
+                this.$keys(propertyValue).forEach(key => {
+                    this.analyseSchemaFromData(currentSchema, propertyValue, key)
+                })
+            } else if (propertyType == "array") {
+                if (propertyValue.length > 0) {
+                    for (let pi = 0; pi < propertyValue.length; pi++) {
+                        this.analyseSchemaFromData(currentSchema, propertyValue, pi)
+                    }
+                }
+            } 
+            return schema;
+        },
+
+        analyseDesignFromData(data) {
+            let schemaRoot = {}
+            let dataRoot = {
+                root: data
+            }
+            this.analyseSchemaFromData(schemaRoot, dataRoot, "root")
+
+
+
+
+
+            return { schema: schemaRoot, data: dataRoot };
+        },
+
 
         isMethod(row, method) {
             return row.method?.toLowerCase() == method
