@@ -21,15 +21,22 @@
                             <div v-for="item in  Object.keys(props.row.examples)" :key="item">
 
                                 {{ item }}
-                                <div :class="$style.exampleTitle">Parameters </div>
+                                <div :class="$style.exampleTitle">
+                                    Parameters 
+                                    <el-link size="small" type="primary" @click="toExampleNode(props.row.examples[item], 'parameters')">编辑</el-link>
+                                </div>
                                 <div :class="$style.exampleValue">
                                     {{ JSON.stringify(props.row.examples[item].parameters) }}
                                 </div>
-                                <div :class="$style.exampleTitle">RequestBody </div>
+                                <div :class="$style.exampleTitle">RequestBody 
+                                    <el-link size="small" type="primary" @click="toExampleNode(props.row.examples[item], 'requestBody')">编辑</el-link>
+                                </div>
                                 <div :class="$style.exampleValue">
                                     {{ JSON.stringify(props.row.examples[item].requestBody) }}
                                 </div>
-                                <div :class="$style.exampleTitle">ResponseBody </div>
+                                <div :class="$style.exampleTitle">ResponseBody 
+                                    <el-link size="small" type="primary" @click="toExampleNode(props.row.examples[item], 'responses')">编辑</el-link>
+                                </div>
                                 <div :class="$style.exampleValue">
                                     {{ JSON.stringify(props.row.examples[item].response) }}
                                 </div>
@@ -55,11 +62,11 @@
                     </el-table-column>
                     <el-table-column label="Summary" prop="summary">
                     </el-table-column>
-                    <el-table-column label="Operation" width="120">
+                    <el-table-column label="Operation" width="180">
                         <template slot-scope="props">
-                            <el-button size="small" type="primary" @click="toDesignNode(props.row)">编辑</el-button>
+                            <el-button size="small" type="primary" @click="toAPINode(props.row)">编辑</el-button>
                             <el-button size="small" type="primary"
-                                @click="addExampleByRow('EXMP0002', props.row)">新建</el-button>
+                                @click="addExampleConfirm(props.row)">新建</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -149,17 +156,23 @@ export default {
             // parameters
             console.log(row);
             console.log(row.parameters);
-            row.parameters?.forEach(p => {
-                _this.$keys(p.examples).forEach(e => {
-                    if (!examples[e]) examples[e] = {}
-                    if (!examples[e].parameters) examples[e].parameters = []
-                    examples[e].parameters.push({
-                        name: p.name,
-                        in: p.in,
-                        value: p.examples[e]
+            if(row.parameters){
+                for (let pi = 0; pi < row.parameters.length; pi++) {
+                    const p = row.parameters[pi];
+                    _this.$keys(p.examples).forEach(e => {
+                        if (!examples[e]) examples[e] = {}
+                        if (!examples[e].parameters) examples[e].parameters = []
+                        examples[e].parameters.push({
+                            name: p.name,
+                            in: p.in,
+                            value: p.examples[e]
+                        })
+                        if(!examples[e].nodes){ examples[e].nodes={} }
+                        examples[e].nodes.parameters=["nodes", "root","paths",row.path,row.method,"parameters",pi,"examples",e]
                     })
-                })
-            })
+                }
+            }
+
             // request
             _this.$keys(row.requestBody?.content)?.forEach(m => {
                 let media = row.requestBody?.content[m]
@@ -167,6 +180,9 @@ export default {
                     if (!examples[e]) examples[e] = {}
                     if (!examples[e].requestBody) examples[e].requestBody = {}
                     examples[e].requestBody = media.examples[e]
+                    
+                    if(!examples[e].nodes){ examples[e].nodes={} }
+                    examples[e].nodes.requestBody=["nodes","root","paths",row.path,row.method,"requestBody","content",m,"examples",e]
                 })
             })
             // response
@@ -178,6 +194,9 @@ export default {
                         if (!examples[e]) examples[e] = {}
                         if (!examples[e].response) examples[e].response = {}
                         examples[e].response = media.examples[e]
+
+                        if(!examples[e].nodes){ examples[e].nodes={} }
+                        examples[e].nodes.responses=["nodes","root","paths",row.path,row.method,"responses",status,"content",m,"examples",e]
                     })
                 })
             })
@@ -185,32 +204,33 @@ export default {
             return examples;
         },
 
-        addExampleByRow(exampleName, row, paramExample, requestExample, responseExample) {
-            this.addExample(exampleName, row.path, row.method, paramExample, requestExample, responseExample)
-        },
-
-        addExample(exampleName, path, method, parameters, requestBody, responses) {
-            parameters = { status2: 'DONE' }
-            requestBody = {
+        addExampleByRow(exampleName, row) {
+            let  paramExample={}, requestExample, responseExample; 
+            if(row.parameters){
+                for (let pi = 0; pi < row.parameters.length; pi++) {
+                    const p = row.parameters[pi];
+                    paramExample[p.name]=""
+                }
+            }
+            requestExample={
                 content: {
-                    "application/json": {
-                        status: "DONE",
-                        id: "ID00001",
-                        name: ""
+                    "application/json": { 
                     }
                 }
             }
-            responses = {
+            responseExample={
                 "200": {
                     content: {
-                        "application/json": {
-                            status: "DONE",
-                            id: "ID00001",
-                            name: ""
+                        "application/json": { 
                         }
                     }
                 }
             }
+
+            this.addExample(exampleName, row.path, row.method, paramExample, requestExample, responseExample)
+        },
+
+        addExample(exampleName, path, method, parameters, requestBody, responses) {
 
             let _this = this
             if (!path || !method) return
@@ -318,12 +338,7 @@ export default {
             let dataRoot = {
                 root: data
             }
-            this.analyseSchemaFromData(schemaRoot, dataRoot, "root")
-
-
-
-
-
+            this.analyseSchemaFromData(schemaRoot, dataRoot, "root") 
             return { schema: schemaRoot, data: dataRoot };
         },
 
@@ -331,18 +346,26 @@ export default {
         isMethod(row, method) {
             return row.method?.toLowerCase() == method
         },
-        toDesignNode(row) {
+        toAPINode(row) {
             console.log(row);
-            this.$router.push({
-                name: "design",
-                query: {
-                    action: "API",
-                    document: this.storage.name,
-                    method: row.method,
-                    path: row.path
-                }
-            })
+
+            this.$updateRuntime("query", "document", this.storage.name)
+            this.$updateRuntime("query", "action", "API")  
+            this.$updateRuntime("query", "nodes",  ["nodes","root","paths", row.path, row.method]) 
+            this.$router.push({ name: "design" })
+
         },
+        toExampleNode(example, type) {
+            console.log(example, type);
+            
+            this.$updateRuntime("query", "document", this.storage.name)
+            this.$updateRuntime("query", "action", "Example")
+            this.$updateRuntime("query", "nodes",  example.nodes[type]) 
+            this.$router.push({ name: "design"  })
+        },
+
+        
+
         getPrefix(type) {
             type = type ? type : this.storage.type
             return `_${type}_`
@@ -406,6 +429,23 @@ export default {
             this.$updateRuntimeDocument()
         },
 
+        addExampleConfirm(row) {
+            this.$prompt('请输入Example名称', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                closeOnClickModal: false,
+                inputValue: ""+new Date().getTime(),
+                inputPattern: null,
+                inputErrorMessage: '请输入Example名称'
+            }).then(({ value }) => {
+                this.addExampleByRow(value, row)
+                this.$message({ type: 'success', message: '添加成功' });
+            }).catch((ex) => {
+                console.log(ex);
+                this.$message({ type: 'info', message: '操作取消' });
+            });
+
+        },
 
         initData() {
             this.listDesign(this.storage.name);

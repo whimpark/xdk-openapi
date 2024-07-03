@@ -47,9 +47,8 @@ export default {
     methods: { 
         handleMenuChange(key) {
             if(key!=this.menuIndex){
-                let menu=this.menus[key] 
-                let runtimeQuery=this.$getRuntime("query")
-                menu.link.query=Object.assign({},menu.query, runtimeQuery)
+                let menu=this.menus[key]  
+                this.$updateRuntime("query", "action", "Menu")
                 this.$router.push(menu.link)
             }
         },

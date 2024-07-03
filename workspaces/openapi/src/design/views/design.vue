@@ -205,7 +205,7 @@ export default {
             this.currentFormSchema = this.schema
         },
 
-        listDesign(name) {
+        listDesign(name, force, keepNodeIndex) {
             var local = window.localStorage;
             let keys = Object.keys(local);
             let names = []
@@ -224,7 +224,7 @@ export default {
                 this.storage.name = ""
             }
             if (this.storage.name) {
-                this.loadDesign(this.storage.name);
+                this.loadDesign(this.storage.name, force, keepNodeIndex);
             }
         },
 
@@ -249,7 +249,7 @@ export default {
         loadDesign(name, force, keepNodeIndex) {
             let originName = name
             let content = this.loadContent(name, force)
-            console.log("loadDesign:content", content);
+            console.log("loadDesign:content", content); 
             this.schema = content?.schema
             this.formData = content?.data
             this.intoNode(keepNodeIndex ? this.formNodes.length - 1 : NODE_BASE);
@@ -477,25 +477,9 @@ export default {
             }
         },
         initData() {
-            this.listDesign(this.storage.name);
-            this.initAction();
+            this.listDesign(this.storage.name, true, true); 
         },
-        initAction() {
-            let query = this.$route.query;
-            let action = query.action;
-            if (action && action == "API") {
-                let document = query.document
-                let path = query.path
-                let method = query.method
-                this.formNodes = ["nodes", "root", "paths", path, method]
-                this.storage.type = "document"
-                if (this.storage.list.indexOf(this.getName(document))) {
-                    this.loadDesign(document, true, true);
-                } else {
-                    this.loadDesign(null, true);
-                }
-            }
-        },
+
 
         handleFormMounted(formRef) {
             console.log('Ui form component:', formRef);
@@ -724,9 +708,6 @@ export default {
 .headerMain {
     flex: 100;
 }
-
-.headerButtons {}
-
 
 
 .linkItem {

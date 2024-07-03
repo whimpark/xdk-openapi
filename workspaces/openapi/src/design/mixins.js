@@ -37,6 +37,12 @@ const mixin = {
                 this.storage.type = "document"
                 this.storage.name = runtimeQuery.document
             }
+            
+            if(["Example","API"].indexOf(runtimeQuery?.action)>=0){
+                if (runtimeQuery?.nodes) {
+                    this.formNodes=runtimeQuery.nodes
+                }
+            }
         },
 
         $updateRuntimeDocument() {
